@@ -1,0 +1,11 @@
+C:\side\imaging\bin\Debug\netcoreapp2.2\imaging.deps.json
+C:\side\imaging\bin\Debug\netcoreapp2.2\imaging.runtimeconfig.json
+C:\side\imaging\bin\Debug\netcoreapp2.2\imaging.runtimeconfig.dev.json
+c:\side\imaging\bin\Debug\netcoreapp2.2\imaging.dll
+c:\side\imaging\bin\Debug\netcoreapp2.2\imaging.pdb
+c:\side\imaging\obj\Debug\netcoreapp2.2\imaging.csprojAssemblyReference.cache
+c:\side\imaging\obj\Debug\netcoreapp2.2\imaging.csproj.CoreCompileInputs.cache
+c:\side\imaging\obj\Debug\netcoreapp2.2\imaging.AssemblyInfoInputs.cache
+c:\side\imaging\obj\Debug\netcoreapp2.2\imaging.AssemblyInfo.cs
+c:\side\imaging\obj\Debug\netcoreapp2.2\imaging.dll
+c:\side\imaging\obj\Debug\netcoreapp2.2\imaging.pdb
