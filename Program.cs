@@ -23,41 +23,78 @@ namespace imaging
             string teamName = "Benfica FC";
             string formation = "4-3-1-2";
 
-            List<Tuple<string,string>> players = GetPlayers();
-            List<string> rb = new List<string>();
-
-            for(int i = 0; i < players.Count; i++)
-            {
-                var p = players[i];
-                switch(p.Item2)
-                {
-                    case "RB": rb.Add(p.Item1); break;
-                    case "LB": break;
-                    case "CB": break;
-                    case "RM": break;
-                    case "LM": break;
-                    case "DM": break;
-                    case "CM": break;
-                    case "AM": break;
-                    case "RF": break;
-                    case "LF": break;
-                    case "CF": break;
-                }
-            }
+            List<Player> players = GetPlayers();
+            Dictionary<string, int> posCount = new Dictionary<string, int>();
 
             try
             {
                 using (Image<Rgba32> image = new Image<Rgba32>(650, 650))
                 {
-                    var pol = new EllipsePolygon(new PointF(200, 200), 15);
-                    var rectangleField = new RectangularPolygon(new PointF(0,64),new PointF(650,650));
+                    List<EllipsePolygon> pols = new List<EllipsePolygon>();
+                    EllipsePolygon playermarker = null;
+
+                    for (int i = 0; i < players.Count; i++)
+                    {
+                        var p = players[i];
+                        int pos = posCount.GetValueOrDefault(p.Position);
+
+                        if (!posCount.ContainsKey(p.Position))
+                        {
+                            posCount.Add(p.Position, 0);
+                        }
+                        posCount[p.Position]++;
+                        switch (p.Position)
+                        {
+                            case "RB": //.Add(p.Item1);
+                                playermarker = new EllipsePolygon(new PointF(130 + (pos * 15), 148), 15);
+                                break;
+                            case "LB":
+                                playermarker = new EllipsePolygon(new PointF(130 + (pos * 15), 532), 15);
+                                break;
+                            case "RM":
+                                playermarker = new EllipsePolygon(new PointF(338 + (pos * 15), 532), 15);
+                                break;
+                            case "LM":
+                                playermarker = new EllipsePolygon(new PointF(338 + (pos * 15), 148), 15);
+                                break;
+                            case "RF":
+                                playermarker = new EllipsePolygon(new PointF(445 + (pos * 15), 532), 15);
+                                break;
+                            case "LF":
+                                playermarker = new EllipsePolygon(new PointF(445 + (pos * 15), 148), 15);
+                                break;
+                            default:
+                                break;
+                        }
+                        pols.Add(playermarker);
+                    }
+
+                    List<int> cbPos = GetPosY(posCount["CB"]);
+                    List<int> dmPos = GetPosY(posCount["DM"]);
+                    List<int> cmPos = GetPosY(posCount["CM"]);
+                    List<int> amPos = GetPosY(posCount["AM"]);
+                    List<int> cfPos = GetPosY(posCount["CF"]);
+
+                    var field = new RectangularPolygon(new PointF(0, 64), new PointF(650, 650));
+                    var penaltybox = new RectangularPolygon(new PointF(0, 160), new PointF(155, 544));
+                    var gkbox = new RectangularPolygon(new PointF(0, 275), new PointF(55, 430));
+                    var midLine = new RectangularPolygon(new PointF(500, 64), new PointF(660, 660));
+                    var midCircle = new EllipsePolygon(new PointF(500, 353), 90);
+                    var penaltySpot = new EllipsePolygon(new PointF(100, 352), 2);
+
+                    var arc = new Polygon(new CubicBezierLineSegment(new PointF[] {
+                            new PointF(155,280),
+                            new PointF(210,300),
+                            new PointF(210,405),
+                            new PointF(155,425)
+                        }));
+
+                    var textGraphicsOptions = new TextGraphicsOptions(true);
 
                     var formationFont = SystemFonts.CreateFont("Trebuchet MS", _formationFontSize, FontStyle.Regular);
                     var teamFont = SystemFonts.CreateFont("Trebuchet MS", _teamNameFontSize, FontStyle.Regular);
                     var playerFont = SystemFonts.CreateFont("Trebuchet MS", _playerNameFontSize, FontStyle.Regular);
 
-                    var textGraphicsOptions = new TextGraphicsOptions(true);
-                    
                     var teamGlyph = SixLabors.Shapes.TextBuilder.GenerateGlyphs(teamName, new PointF(20, 28), new RendererOptions(teamFont, textGraphicsOptions.DpiX, textGraphicsOptions.DpiY)
                     {
                         HorizontalAlignment = textGraphicsOptions.HorizontalAlignment,
@@ -77,19 +114,25 @@ namespace imaging
                     });
 
                     image.Mutate(ctx => ctx
-                        .Fill(new Rgba32(237,237,237)) // white background image
-                        .Fill(new GraphicsOptions(true),new Rgba32(158,209,171),rectangleField)
-                        //.Draw(Rgba32.DarkGoldenrod, 3, pol)
-                        
+                        .Fill(new Rgba32(237, 237, 237)) // white background image
                         .Fill((GraphicsOptions)textGraphicsOptions, Rgba32.Black, teamGlyph)
                         .Fill((GraphicsOptions)textGraphicsOptions, Rgba32.Black, formationGlyph)
-                        .Fill(new GraphicsOptions(true),new Rgba32(237,237,237),pol)
-                        .Draw(new Rgba32(155,186,217),1,pol)
-                        )
-                        ;
+                        .Fill(new GraphicsOptions(true), new Rgba32(158, 209, 171), field)
+                        .Draw(new Rgba32(180, 230, 193), 3, arc)
+                        .Draw(new Rgba32(180, 230, 193), 3, penaltybox)
+                        .Draw(new Rgba32(180, 230, 193), 3, gkbox)
+                        .Draw(new Rgba32(180, 230, 193), 3, midLine)
+                        .Draw(new Rgba32(180, 230, 193), 3, midCircle)
+                        .Draw(new Rgba32(180, 230, 193), 3, penaltySpot)
+                        );
 
+                    foreach (var p in pols)
+                    {
+                        image.Mutate(ctx => ctx
+                        .Fill(new GraphicsOptions(true), new Rgba32(237, 237, 237), p)
+                        .Draw(new Rgba32(155, 186, 217), 1, p));
+                    }
 
-                    
                     image.Save("output/wordart.png");
                 }
             }
@@ -98,6 +141,43 @@ namespace imaging
 
             }
         }
+
+        private static List<int> GetPosY(int poscount)
+        {
+            List<int> positions = new List<int>();
+            if (poscount < 4)
+            {
+                switch (poscount)
+                {
+                    case 1:
+                        positions.Add(148 + (int)((532 - 148) / 2));
+                        break;
+                    case 2:
+                        positions.Add(148 + (int)((532 + 148) / 3));
+                        positions.Add(148 + (int)((532 + 148) * 2 / 3));
+                        break;
+                    case 3:
+                        positions.Add(148 + (int)((532 + 148) / 4));
+                        positions.Add(148 + (int)((532 + 148) * 2 / 4));
+                        positions.Add(148 + (int)((532 + 148) * 3 / 4));
+                        break;
+                    default:
+                        break;
+                }
+            }
+            else
+            {
+                positions.Add(148 + (int)((532 + 148) / 4));
+                positions.Add(148 + (int)((532 + 148) * 2 / 4));
+                positions.Add(148 + (int)((532 + 148) * 3 / 4));
+                for (int i = 0; i < poscount - 3; i++)
+                {
+                    positions.Add(148 + (int)((532 + 148) * 2 / 4));
+                }
+            }
+            return positions;
+        }
+
         static byte[] ImageToByteArray(Image<Rgba32> imageIn)
         {
             using (var ms = new MemoryStream())
@@ -107,19 +187,19 @@ namespace imaging
             }
         }
 
-        static List<Tuple<string, string>> GetPlayers()
+        static List<Player> GetPlayers()
         {
-            List<Tuple<string, string>> players = new List<Tuple<string, string>>();
-            players.Add(new Tuple<string, string>("Name 1", "RB"));
-            players.Add(new Tuple<string, string>("Name 2", "CB"));
-            players.Add(new Tuple<string, string>("Name 3", "CB"));
-            players.Add(new Tuple<string, string>("Name 4", "LB"));
-            players.Add(new Tuple<string, string>("Name 5", "RM"));
-            players.Add(new Tuple<string, string>("Name 6", "LM"));
-            players.Add(new Tuple<string, string>("Name 7", "CM"));
-            players.Add(new Tuple<string, string>("Name 8", "CM"));
-            players.Add(new Tuple<string, string>("Name 9", "CF"));
-            players.Add(new Tuple<string, string>("Name 10", "CF"));
+            List<Player> players = new List<Player>();
+            players.Add(new Player("Name 1", "RB"));
+            players.Add(new Player("Name 2", "CB"));
+            players.Add(new Player("Name 3", "CB"));
+            players.Add(new Player("Name 4", "LB"));
+            players.Add(new Player("Name 5", "RM"));
+            players.Add(new Player("Name 6", "LM"));
+            players.Add(new Player("Name 7", "CM"));
+            players.Add(new Player("Name 8", "CM"));
+            players.Add(new Player("Name 9", "CF"));
+            players.Add(new Player("Name 10", "CF"));
             return players;
         }
 
