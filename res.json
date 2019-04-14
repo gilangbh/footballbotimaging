@@ -1,0 +1,161 @@
+{
+    "RB": [
+        {
+            "Marker": null,
+            "Info": {
+                "Position": "RB",
+                "Name": "Gilang Bhagaskara"
+            },
+            "posX": 138,
+            "posY": 532,
+            "isSide": true,
+            "IsAssigned": false
+        }
+    ],
+    "LB": [
+        {
+            "Marker": null,
+            "Info": {
+                "Position": "LB",
+                "Name": "Raufan Multahada"
+            },
+            "posX": 138,
+            "posY": 148,
+            "isSide": true,
+            "IsAssigned": false
+        },
+        {
+            "Marker": null,
+            "Info": {
+                "Position": "LB",
+                "Name": "Ken Danniswara"
+            },
+            "posX": 153,
+            "posY": 148,
+            "isSide": true,
+            "IsAssigned": false
+        }
+    ],
+    "CB": [
+        {
+            "Marker": null,
+            "Info": {
+                "Position": "CB",
+                "Name": "Julian Plufer"
+            },
+            "posX": 138,
+            "posY": 340,
+            "isSide": false,
+            "IsAssigned": false
+        }
+    ],
+    "RM": [
+        {
+            "Marker": null,
+            "Info": {
+                "Position": "RM",
+                "Name": "David Chen"
+            },
+            "posX": 338,
+            "posY": 532,
+            "isSide": true,
+            "IsAssigned": false
+        }
+    ],
+    "LM": [
+        {
+            "Marker": null,
+            "Info": {
+                "Position": "LM",
+                "Name": "Agus Triutomo"
+            },
+            "posX": 338,
+            "posY": 148,
+            "isSide": true,
+            "IsAssigned": false
+        }
+    ],
+    "DM": [
+        {
+            "Marker": null,
+            "Info": {
+                "Position": "DM",
+                "Name": "Michael Jack"
+            },
+            "posX": 238,
+            "posY": 340,
+            "isSide": false,
+            "IsAssigned": false
+        }
+    ],
+    "AM": [
+        {
+            "Marker": null,
+            "Info": {
+                "Position": "AM",
+                "Name": "Dheta Good"
+            },
+            "posX": 438,
+            "posY": 340,
+            "isSide": false,
+            "IsAssigned": false
+        }
+    ],
+    "CF": [
+        {
+            "Marker": null,
+            "Info": {
+                "Position": "CF",
+                "Name": "Luthfi Aprianto"
+            },
+            "posX": 538,
+            "posY": 244,
+            "isSide": false,
+            "IsAssigned": false
+        },
+        {
+            "Marker": null,
+            "Info": {
+                "Position": "CF",
+                "Name": "Pena Persada"
+            },
+            "posX": 538,
+            "posY": 340,
+            "isSide": false,
+            "IsAssigned": false
+        },
+        {
+            "Marker": null,
+            "Info": {
+                "Position": "CF",
+                "Name": "Pena Persada"
+            },
+            "posX": 538,
+            "posY": 436,
+            "isSide": false,
+            "IsAssigned": false
+        },
+        {
+            "Marker": null,
+            "Info": {
+                "Position": "CF",
+                "Name": "Pena Persada"
+            },
+            "posX": 553,
+            "posY": 340,
+            "isSide": false,
+            "IsAssigned": false
+        },
+        {
+            "Marker": null,
+            "Info": {
+                "Position": "CF",
+                "Name": "Pena Persada"
+            },
+            "posX": 568,
+            "posY": 340,
+            "isSide": false,
+            "IsAssigned": false
+        }
+    ]
+}

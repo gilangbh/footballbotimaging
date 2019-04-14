@@ -18,15 +18,19 @@ namespace imaging
         private static readonly float _formationFontSize = 15.6f;
         private static readonly float _teamNameFontSize = 15.6f;
         private static readonly float _playerNameFontSize = 13f;
-        static List<PlayerMarker> playerMarkers;
+        private static readonly int _baseXb = 138;
+        private static readonly int _baseXdm = 238;
+        private static readonly int _baseXm = 338;
+        private static readonly int _baseXam = 438;
+        private static readonly int _baseXf = 538;
+        private static readonly int _baseYL = 148;
+        private static readonly int _baseYR = 532;
+        static Dictionary<string, List<PlayerMarker>> playerMarkers;
 
         static void Main(string[] args)
         {
             string teamName = "Benfica FC";
             string formation = "4-3-1-2";
-
-            List<Player> players = GetPlayers();
-            Dictionary<string, int> posCount = new Dictionary<string, int>();
 
             try
             {
@@ -94,79 +98,56 @@ namespace imaging
                         .Draw(new Rgba32(180, 230, 193), 3, midCircle)
                         .Draw(new Rgba32(180, 230, 193), 3, penaltySpot)
                         );
-                    playerMarkers = new List<PlayerMarker>();
 
-                    for (int i = 0; i < players.Count; i++)
+                    List<Player> players = GetPlayers();
+                    playerMarkers = new Dictionary<string, List<PlayerMarker>>();
+
+                    foreach (Player p in players)
                     {
-                        Player p = players[i];
-
-                        PlayerMarker pm = new PlayerMarker();
-                        switch (p.Position)
+                        PlayerMarker marker = new PlayerMarker() { Info = p };
+                        if (!playerMarkers.ContainsKey(p.Position))
                         {
-                            case "LB": //.Add(p.Item1);
-                                pm.posX = 130;
-                                pm.posY = 148;
-                                break;
-                            case "RB":
-                                pm.posX = 130;
-                                pm.posY = 532;
-                                break;
-                            case "CB":
-                                pm.posX = 130;
-                                pm.posY = 340;
-                                break;
-                            case "RM":
-                                pm.posX = 338;
-                                pm.posY = 532;
-                                break;
-                            case "LM":
-                                pm.posX = 338;
-                                pm.posY = 148;
-                                break;
-                            case "DM":
-                                pm.posX = 238;
-                                pm.posY = 340;
-                                break;
-                            case "CM":
-                                pm.posX = 338;
-                                pm.posY = 340;
-                                break;
-                            case "AM":
-                                pm.posX = 438;
-                                pm.posY = 340;
-                                break;
-                            case "RF":
-                                pm.posX = 538;
-                                pm.posY = 532;
-                                break;
-                            case "LF":
-                                pm.posX = 538;
-                                pm.posY = 148;
-                                break;
-                            case "CF":
-                                pm.posX = 538;
-                                pm.posY = 340;
-                                break;
+                            List<PlayerMarker> playerInPosition = new List<PlayerMarker>();
+                            playerInPosition.Add(marker);
+                            playerMarkers.Add(p.Position, playerInPosition);
                         }
-                        pm.Info = p;
-                        playerMarkers.Add(pm);
+                        else
+                        {
+                            playerMarkers[p.Position].Add(marker);
+                        }
                     }
 
-                    foreach (var pm in playerMarkers)
+                    ProcessPosition("LB", _baseXb, _baseYL, true);
+                    ProcessPosition("RB", _baseXb, _baseYR, true);
+                    ProcessPosition("CB", _baseXb, 0, false);
+                    ProcessPosition("DM", _baseXdm, 0, false);
+                    ProcessPosition("LM", _baseXm, _baseYL, true);
+                    ProcessPosition("RM", _baseXm, _baseYR, true);
+                    ProcessPosition("CM", _baseXm, 0, false);
+                    ProcessPosition("AM", _baseXam, 0, false);
+                    ProcessPosition("LF", _baseXf, _baseYL, true);
+                    ProcessPosition("RF", _baseXf, _baseYR, true);
+                    ProcessPosition("CF", _baseXf, 0, false);
+
+                    Console.WriteLine(JsonConvert.SerializeObject(playerMarkers));
+                    List<PlayerMarker> finalPositions = new List<PlayerMarker>();
+
+                    foreach (var i in playerMarkers.Values)
                     {
-                        //var coordinate = GenerateCoordinate(pm);
-                        //pm.posX = coordinate.Item1;
-                        //pm.posY = coordinate.Item2;
-                        pm.Marker = new EllipsePolygon(new PointF(pm.posX, pm.posY), 15);
+                        foreach (var p in i)
+                        {
+                            p.Marker = new EllipsePolygon(new PointF(p.posX, p.posY), 15);
+                            finalPositions.Add(p);
+                        }
                     }
 
-                    foreach (var p in playerMarkers)
+                    foreach (var p in finalPositions)
                     {
                         image.Mutate(ctx => ctx
                         .Fill(new GraphicsOptions(true), new Rgba32(237, 237, 237), p.Marker)
                         .Draw(new Rgba32(155, 186, 217), 1, p.Marker)
                         .Fill((GraphicsOptions)textGraphicsOptions, Rgba32.Black, TextBuilder.GenerateGlyphs(p.Info.Position, new PointF(p.posX, p.posY - 4), playerOptions))
-                        .Fill((GraphicsOptions)textGraphicsOptions, Rgba32.Black, TextBuilder.GenerateGlyphs(p.Info.Name, new PointF(p.posX, p.posY + 20), playerOptions))
+                        .Fill((GraphicsOptions)textGraphicsOptions, Rgba32.Black, TextBuilder.GenerateGlyphs(p.Info.Name, new PointF(p.posX, p.posText), playerOptions))
                         );
                     }
 
@@ -179,119 +160,59 @@ namespace imaging
             }
         }
 
-        private static Tuple<int, int> GenerateCoordinate(PlayerMarker pm)
+        private static void ProcessPosition(string pos, int basePosX, int basePosY, bool side)
         {
-            if (pm.isSide)
+            if (playerMarkers.ContainsKey(pos)) //make sure position is not empty
             {
-                while (playerMarkers.Exists(x => x.posX == pm.posX))
-                {
-                    pm.posX += 15;
-                }
-            }
-            else
-            {
+                //get all players on this position
+                List<PlayerMarker> markers = playerMarkers[pos];
+                //count them
+                int totalPlayersOnThisSide = markers.Count;
 
-            }
-
-            return new Tuple<int, int>(pm.posX, pm.posY);
-        }
-        private static void GetMidPositions(PlayerMarker pm)
-        {
-            List<PlayerMarker> playersinposition = playerMarkers.Where(x => x.Info.Position == pm.Info.Position).ToList();
-            if (playersinposition.Count < 4)
-            {
-                foreach (var item in playersinposition)
+                //if it is side area
+                if (side)
                 {
-                    item.posY = 148 + (int)(532 - 148) * playersinposition.IndexOf(item) / (playersinposition.Count + 1);
-                }
-            }
-            else
-            {
-                playersinposition[0].posY = 148 + (int)((532 - 148) / 4);
-                playersinposition[1].posY = 148 + (int)((532 - 148) * 2 / 4);
-                playersinposition[2].posY = 148 + (int)((532 - 148) * 3 / 4);
-                for (int i = 3; i < playersinposition.Count; i++)
-                {
-                    playersinposition[i].posY = 148 + (int)((532 - 148) * 2 / 4);
-                    playersinposition[i].posX = playersinposition[1].posX + (15 * (i - 2));
-                }
-            }
-            for (int i = 0; i < playersinposition.Count; i++)
-            {
-
-            }
-        }
-        private static List<EllipsePolygon> GetMidPositions(int poscount, string _posX)
-        {
-            int posX = 0;
-            switch (_posX)
-            {
-                case "CB":
-                    posX = 130;
-                    break;
-                case "DM":
-                    posX = 234;
-                    break;
-                case "CM":
-                    posX = 338;
-                    break;
-                case "AM":
-                    posX = 438;
-                    break;
-                default:
-                    posX = 538;
-                    break;
-            }
-
-            List<int> posY = new List<int>();
-            if (poscount < 4)
-            {
-                switch (poscount)
-                {
-                    case 1:
-                        posY.Add(148 + (int)((532 - 148) / 2));
-                        break;
-                    case 2:
-                        posY.Add(148 + (int)((532 - 148) / 3));
-                        posY.Add(148 + (int)((532 - 148) * 2 / 3));
-                        break;
-                    case 3:
-                        posY.Add(148 + (int)((532 - 148) / 4));
-                        posY.Add(148 + (int)((532 - 148) * 2 / 4));
-                        posY.Add(148 + (int)((532 - 148) * 3 / 4));
-                        break;
-                    default:
-                        break;
-                }
-            }
-            else
-            {
-                posY.Add(148 + (int)((532 - 148) / 4));
-                posY.Add(148 + (int)((532 - 148) * 2 / 4));
-                posY.Add(148 + (int)((532 - 148) * 3 / 4));
-                for (int i = 0; i < poscount - 3; i++)
-                {
-                    posY.Add(148 + (int)((532 - 148) * 2 / 4));
-                }
-            }
-            List<EllipsePolygon> ellipses = new List<EllipsePolygon>();
-            int extraCount = 0;
-
-            for (int i = 0; i < posY.Count; i++)
-            {
-                if (posY[i] == 340)
-                {
-                    ellipses.Add(new EllipsePolygon(new PointF(posX + (15 * extraCount), posY[i]), 15));
-                    extraCount++;
+                    //then just add 15 per players
+                    for (int i = 0; i < totalPlayersOnThisSide; i++)
+                    {
+                        markers[i].posX = basePosX + (i * 15);
+                        markers[i].posY = basePosY;
+                        markers[i].posText = markers[i].posY + 20 + (i * 15);
+                    }
                 }
                 else
                 {
-                    ellipses.Add(new EllipsePolygon(new PointF(posX, posY[i]), 15));
+                    basePosY = _baseYL;
+                    List<int> positions = new List<int>();
+                    if (totalPlayersOnThisSide < 4)
+                    {
+                        for (int i = 0; i < totalPlayersOnThisSide; i++)
+                        {
+                            int arrangedPosition = (_baseYR + _baseYL) * (i + 1) / (totalPlayersOnThisSide + 1);
+                            markers[i].posX = basePosX;
+                            markers[i].posY = arrangedPosition;
+                            markers[i].posText = markers[i].posY + 20;
+                        }
+                    }
+                    else
+                    {
+                        for (int i = 0; i < 4; i++)
+                        {
+                            int arrangedPosition = (_baseYR - _baseYL) * (i + 1) / 4;
+                            markers[i].posX = basePosX;
+                            markers[i].posY = basePosY + arrangedPosition;
+                            markers[i].posText = markers[i].posY + 20;
+                        }
+                        for (int i = 0; i < totalPlayersOnThisSide - 3; i++)
+                        {
+                            markers[i + 3].posX = basePosX + (15 * (1 + i));
+                            markers[i + 3].posY = basePosY + (int)((_baseYR - _baseYL) / 2);
+                            markers[i + 3].posText = markers[i + 3].posY + 20 + ((i + 1) * 15);
+                        }
+                    }
                 }
             }
-            return ellipses;
         }
-
         static byte[] ImageToByteArray(Image<Rgba32> imageIn)
         {
             using (var ms = new MemoryStream())
@@ -304,22 +225,17 @@ namespace imaging
         static List<Player> GetPlayers()
         {
             List<Player> players = new List<Player>();
-            players.Add(new Player("Gilang Bhagaskara", "RB"));
-            players.Add(new Player("Raufan Multahada", "LB"));
-            players.Add(new Player("Ken Danniswara", "LB"));
-            players.Add(new Player("Julian Plufer", "CB"));
-            players.Add(new Player("David Chen", "RM"));
+            players.Add(new Player("Gilang Bhagaskara", "CB"));
+            players.Add(new Player("Raufan Multahada", "CB"));
+            players.Add(new Player("Julian Assange", "RB"));
+            players.Add(new Player("David Chen", "LB"));
             players.Add(new Player("Agus Triutomo", "LM"));
             players.Add(new Player("Michael Jack", "DM"));
-            players.Add(new Player("Dheta Good", "AM"));
-            players.Add(new Player("Luthfi Aprianto", "CF"));
+            players.Add(new Player("Dheta Goodwill", "CM"));
+            players.Add(new Player("Luthfi Aprianto", "RM"));
             players.Add(new Player("Pena Persada", "CF"));
+            players.Add(new Player("Adit Kinarang", "CF"));
             return players;
-        }
-
-        private static List<EllipsePolygon> processRB(List<string> rbs)
-        {
-            return new List<EllipsePolygon>();
         }
     }
 }
